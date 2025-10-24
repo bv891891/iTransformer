@@ -1,9 +1,12 @@
 import argparse
+import platform
+import random
+
+import numpy as np
 import torch
+
 from experiments.exp_long_term_forecasting import Exp_Long_Term_Forecast
 from experiments.exp_long_term_forecasting_partial import Exp_Long_Term_Forecast_Partial
-import random
-import numpy as np
 
 if __name__ == '__main__':
     fix_seed = 2023
@@ -17,7 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--is_training', type=int, required=True, default=1, help='status')
     parser.add_argument('--model_id', type=str, required=True, default='test', help='model id')
     parser.add_argument('--model', type=str, required=True, default='iTransformer',
-                        help='model name, options: [iTransformer, iInformer, iReformer, iFlowformer, iFlashformer]')
+                        help='model name, options: [iTransformer, iInformer, iReformer, iFlowformer, iFlashformer, vtga-former]')
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='custom', help='dataset type')
@@ -89,6 +92,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     args.use_gpu = True if torch.cuda.is_available() and args.use_gpu else False
+
+    if platform.system() == "Windows" and args.num_workers != 0:
+        print("Windows platform detected, overriding num_workers to 0 to avoid dataloader spawn failures.")
+        args.num_workers = 0
 
     if args.use_gpu and args.use_multi_gpu:
         args.devices = args.devices.replace(' ', '')
